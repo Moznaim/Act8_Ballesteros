@@ -33,7 +33,7 @@
         - openssl-devel
     when: ansible_distribution == "CentOS"
 
-  - name: download Nagios on server
+  - name: download Nagios on server Ubuntu
     tags: nagios
     get_url:
       url: https://github.com/NagiosEnterprises/nagioscore/archive/nagios-4.4.14.tar.gz
@@ -45,32 +45,31 @@
       dest: /tmp
       remote_src: yes
 
-  - name: compile nagios
+  - name: compile nagios (Ubuntu)
     shell: |
-      cd /tmp/nagioscore-nagios-4.4.14
+      cd /tmp
+      cd nagios-4.4.14
       ./configure --with-httpd-conf=/etc/apache2/sites-enabled
       make all
       make install
       make install-init
-      make install-daemoninit
       make install-commandmode
       make install-config
       make install-webconf
-      args:
-      creates: /usr/local/nagios/bin/nagios
+      a2enmod rewrite
+      a2enmod cgi
+      systemctl restart apache2
     when: ansible_distribution == "Ubuntu"
 
-  - name: install nagios centos
+  - name: compile nagios (CentOS)
     shell: |
-      cd /tmp/nagioscore-nagios-4.4.14
-      ./configure
+      cd /tmp
+      cd nagios-4.4.14
       make all
       make install
       make install-init
-      make install-daemoninit
       make install-commandmode
       make install-config
       make install-webconf
-      args:
-      creates: /usr/local/nagios/bin/nagios
-    when: ansible_distribuiton == "CentOS"
+      systemctl restart httpd
+    when: ansible_distribution == "CentOS"
